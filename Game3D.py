@@ -180,10 +180,18 @@ def distance(obj_1_x, obj_1_y, obj_2_x, obj_2_y):
     return dis
 
 
-def wall_collision(w_list, x, y):
+def wall_collision_h(w_list, x, y):
     for wall in w_list:
         if wall[1] == y / cube_size or wall[1] + 1 == y / cube_size:
             if wall[0] <= x / cube_size <= wall[0] + 1:
+                return True
+    return False
+
+
+def wall_collision_v(w_list, x, y):
+    for wall in w_list:
+        if wall[0] == x / cube_size or wall[0] + 1 == x / cube_size:
+            if wall[1] <= y / cube_size <= wall[1] + 1:
                 return True
     return False
 
@@ -214,17 +222,18 @@ def horizontal_rey(xp, yp, degree):
         xa = 0
         ax = 0
     # print('xa, ya = ' + str(xa) + ' ' + str(ya))
-    testy = int((map_scale * ay) / (cube_size * number_cube))
-    testx = int((window_x - map_scale) + (map_scale * ax) / (cube_size * number_cube))
-    if -1000 > testx or testx > 1000:
-        testx = 1000
-    # print(testx, testy)
-    pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
+    # testy = int((map_scale * ay) / (cube_size * number_cube))
+    # testx = int((window_x - map_scale) + (map_scale * ax) / (cube_size * number_cube))
+    # if -1000 > testx or testx > 1000:
+    #     testx = 1000
+    # # print(testx, testy)
+    # pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
 
     #  проверка на наличие стенки на первой точке
     # print('проверка на наличие стенки на первой точке')
-    if wall_collision(wall_list, ax, ay):
+    if wall_collision_h(wall_list, ax, ay):
         distance(xp, yp, ax, ay)
+        return ax, ay
     # for wall in wall_list:
     #     if wall.collision(ax, ay):
     #         # print('colission' + str(ax) + ' ' + str(ay))
@@ -240,17 +249,88 @@ def horizontal_rey(xp, yp, degree):
         if ax > real_map_size or ay > real_map_size or ax < 0 or ay < 0:
             # print('луч вышел за граници карты')
             break
-        testy = int((map_scale * ay) / (cube_size * number_cube))
-        testx = int((window_x - map_scale) + (map_scale * ax) / (cube_size * number_cube))
-        if -1000 > testx or testx > 1000:
-           testx = 1000
-        #print(testx, testy)
-        pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
+        # testy = int((map_scale * ay) / (cube_size * number_cube))
+        # testx = int((window_x - map_scale) + (map_scale * ax) / (cube_size * number_cube))
+        # if -1000 > testx or testx > 1000:
+        #    testx = 1000
+        # #print(testx, testy)
+        # pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
 
         #  проверка на наличие стенки
         # print('проверка на наличие стенки')
-    if wall_collision(wall_list, ax, ay):
-        distance(xp, yp, ax, ay)
+        if wall_collision_h(wall_list, ax, ay):
+            distance(xp, yp, ax, ay)
+            return ax, ay
+    return 0, 0
+
+
+def vertical_rey(xp, yp, degree):
+    temporarily_dis = 0
+    """пускаем луч по вертикалям"""
+    print('пускаем луч по вертикалям')
+    print('degree' + str(degree))
+    print('xp ' + str(xp))
+    print('yp ' + str(yp))
+    go = True
+
+    #  ищем значение к которому потом будем прибавлять первое пересечение (ya, xa)
+    #  и ищем самою первою точку пересечения по горизонтали  (bx, by)
+    print('ищем ya, xa, bx, by')
+    if 90 < degree < 270:  # право
+        print('left')
+        bx = int(xp / cube_size * cube_size)
+        xa = - cube_size
+    else:  # лево
+        print('right')
+        bx = int(xp / cube_size * cube_size + cube_size)
+        xa = cube_size
+    tangens_degree = math.tan((degree * math.pi) / 180)
+    if tangens_degree != 0:
+        if 90 < degree < 270:
+            ya = cube_size / tangens_degree
+        else:
+            ya = cube_size / tangens_degree
+        by = yp + (xp - bx) * tangens_degree
+    else:
+        ya = 0
+        by = yp
+    print(ya, xa, bx, by)
+    #  проверка на наличие стенки на первой точке
+    print('проверка на наличие стенки на первой точке')
+    if wall_collision_v(wall_list, bx, by):
+        distance(xp, yp, bx, by)
+        return bx, by
+
+    testy = int((map_scale * by) / (cube_size * number_cube))
+    testx = int((window_x - map_scale) + (map_scale * bx) / (cube_size * number_cube))
+    if -1000 > testy or testy > 1000:
+        testy = 1000
+     # print(testx, testy)
+    pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
+
+    #  если на первой точке нету стенки то идем дальше
+    #print('на первой точке нету стенки, идем дальше')
+    while go:
+        bx += xa
+        by += ya
+
+        testy = int((map_scale * by) / (cube_size * number_cube))
+        testx = int((window_x - map_scale) + (map_scale * bx) / (cube_size * number_cube))
+        if -1000 > testy or testy > 1000:
+            testy = 1000
+        # print(testx, testy)
+        pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
+
+        print('bx, by = ' + str(bx) + ' ' + str(by))
+        if bx > real_map_size or by > real_map_size or bx < 0 or by < 0:
+            # print('луч вышел за граници карты')
+            break
+        #  проверка на наличие стенки
+        #print('проверка на наличие стенки')
+        if wall_collision_v(wall_list, bx, by):
+            distance(xp, yp, bx, by)
+            return bx, by
+    return 0, 0
 
 
 def go_rey(xp, yp, degree, dir_up, dir_r, wall_l):
@@ -356,7 +436,7 @@ for item in map_list:
     if item != '0' and item != '#':
         pass
 
-player = Player(400, 400, 270, 90)
+player = Player(400, 400, 0, 90)
 # for number in range(int(-player.v_a / 2), 0, 5):
 #     rey_list.append(Rey(player.x, player.y, number))
 
@@ -425,7 +505,19 @@ while run:
     #         print(rey.distance)
     Game.draw_minimap()
     if gorey:
-        for number in range(-50, 50):
-            horizontal_rey(player.x, player.y, player.degree + number)
+        for number in range(1):
+            x, y = horizontal_rey(player.x, player.y, player.degree + number)
+            x1, y1 = vertical_rey(player.x, player.y, player.degree + number)
+
+            testy = int((map_scale * y) / (cube_size * number_cube))
+            testx = int((window_x - map_scale) + (map_scale * x) / (cube_size * number_cube))
+            testy1 = int((map_scale * y1) / (cube_size * number_cube))
+            testx1 = int((window_x - map_scale) + (map_scale * x1) / (cube_size * number_cube))
+            #print(testx1, testy1)
+            if -1000 < testx or testx < 1000:
+                pass
+                # pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
+            if -1000 < testy1 or testy1 < 1000:
+                pygame.draw.circle(window, (255, 255, 255), [testx1, testy1], 3, 3)
     #Game.draw_screen()
     pygame.display.update()
