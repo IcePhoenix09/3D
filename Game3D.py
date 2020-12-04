@@ -375,7 +375,7 @@ for item in map_list:  # рисование стени
     count_x += 1
 
 while run:
-    # clock.tick(60)
+    clock.tick(60)
     for e in pygame.event.get():
         if e.type == pygame.QUIT:
             run = False
@@ -425,6 +425,7 @@ while run:
     #         print(rey.distance)
     Game.draw_minimap()
     if gorey:
-        horizontal_rey(player.x, player.y, player.degree)
+        for number in range(-50, 50):
+            horizontal_rey(player.x, player.y, player.degree + number)
     #Game.draw_screen()
     pygame.display.update()
