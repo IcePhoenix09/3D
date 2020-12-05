@@ -232,8 +232,8 @@ def horizontal_rey(xp, yp, degree):
     #  проверка на наличие стенки на первой точке
     # print('проверка на наличие стенки на первой точке')
     if wall_collision_h(wall_list, ax, ay):
-        distance(xp, yp, ax, ay)
-        return ax, ay
+        dis = distance(xp, yp, ax, ay)
+        return ax, ay, dis
     # for wall in wall_list:
     #     if wall.collision(ax, ay):
     #         # print('colission' + str(ax) + ' ' + str(ay))
@@ -259,54 +259,54 @@ def horizontal_rey(xp, yp, degree):
         #  проверка на наличие стенки
         # print('проверка на наличие стенки')
         if wall_collision_h(wall_list, ax, ay):
-            distance(xp, yp, ax, ay)
-            return ax, ay
-    return 0, 0
+            dis = distance(xp, yp, ax, ay)
+            return ax, ay, dis
+    return 0, 0, 1000
 
 
 def vertical_rey(xp, yp, degree):
     temporarily_dis = 0
     """пускаем луч по вертикалям"""
-    print('пускаем луч по вертикалям')
-    print('degree' + str(degree))
-    print('xp ' + str(xp))
-    print('yp ' + str(yp))
+    # print('пускаем луч по вертикалям')
+    # print('degree' + str(degree))
+    # print('xp ' + str(xp))
+    # print('yp ' + str(yp))
     go = True
 
     #  ищем значение к которому потом будем прибавлять первое пересечение (ya, xa)
     #  и ищем самою первою точку пересечения по горизонтали  (bx, by)
-    print('ищем ya, xa, bx, by')
-    if 90 < degree < 270:  # право
+    #print('ищем ya, xa, bx, by')
+    if 90 < degree < 270:  # лево
         print('left')
-        bx = int(xp / cube_size * cube_size)
+        bx = int(xp / cube_size) * cube_size
         xa = - cube_size
-    else:  # лево
+    else:  # право
         print('right')
-        bx = int(xp / cube_size * cube_size + cube_size)
+        bx = int(xp / cube_size) * cube_size + cube_size
         xa = cube_size
     tangens_degree = math.tan((degree * math.pi) / 180)
     if tangens_degree != 0:
         if 90 < degree < 270:
-            ya = cube_size / tangens_degree
+            ya = cube_size * tangens_degree
         else:
-            ya = cube_size / tangens_degree
+            ya = - cube_size * tangens_degree
         by = yp + (xp - bx) * tangens_degree
     else:
         ya = 0
         by = yp
     print(ya, xa, bx, by)
     #  проверка на наличие стенки на первой точке
-    print('проверка на наличие стенки на первой точке')
+    #print('проверка на наличие стенки на первой точке')
     if wall_collision_v(wall_list, bx, by):
-        distance(xp, yp, bx, by)
-        return bx, by
-
-    testy = int((map_scale * by) / (cube_size * number_cube))
-    testx = int((window_x - map_scale) + (map_scale * bx) / (cube_size * number_cube))
-    if -1000 > testy or testy > 1000:
-        testy = 1000
-     # print(testx, testy)
-    pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
+        dis = distance(xp, yp, bx, by)
+        return bx, by, dis
+    return 0, 0, 1000
+    # testy = int((map_scale * by) / (cube_size * number_cube))
+    # testx = int((window_x - map_scale) + (map_scale * bx) / (cube_size * number_cube))
+    # if -1000 > testy or testy > 1000:
+    #     testy = 1000
+    #  # print(testx, testy)
+    # pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
 
     #  если на первой точке нету стенки то идем дальше
     #print('на первой точке нету стенки, идем дальше')
@@ -314,12 +314,12 @@ def vertical_rey(xp, yp, degree):
         bx += xa
         by += ya
 
-        testy = int((map_scale * by) / (cube_size * number_cube))
-        testx = int((window_x - map_scale) + (map_scale * bx) / (cube_size * number_cube))
-        if -1000 > testy or testy > 1000:
-            testy = 1000
-        # print(testx, testy)
-        pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
+        # testy = int((map_scale * by) / (cube_size * number_cube))
+        # testx = int((window_x - map_scale) + (map_scale * bx) / (cube_size * number_cube))
+        # if -1000 > testy or testy > 1000:
+        #     testy = 1000
+        # # print(testx, testy)
+        # pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
 
         print('bx, by = ' + str(bx) + ' ' + str(by))
         if bx > real_map_size or by > real_map_size or bx < 0 or by < 0:
@@ -328,108 +328,18 @@ def vertical_rey(xp, yp, degree):
         #  проверка на наличие стенки
         #print('проверка на наличие стенки')
         if wall_collision_v(wall_list, bx, by):
-            distance(xp, yp, bx, by)
-            return bx, by
+            dis = distance(xp, yp, bx, by)
+            return bx, by, dis
     return 0, 0
 
 
-def go_rey(xp, yp, degree, dir_up, dir_r, wall_l):
-
-    dis_list1 = []
-    # dr = направление движения луча
-    dr = degree - (player.v_a / 2)  # dr = начальний угол
-    for number in range(projection_plane[0]):  # пускаем лучи
-        temporarily_dis = 0
-        """пускаем луч по горезонталям"""
-        print('пускаем луч по горезонталям')
-        go = True
-
-        #  ищем значение к которому потом будем прибавлять первое пересечение (ya, xa)
-        #  и ищем самою первою точку пересечения по горизонтали  (ax, ay)
-        print('ищем ya, xa, ax, ay')
-        if dir_up:
-            ay = int(yp / cube_size) * cube_size - 1
-            ya = - cube_size
-        else:
-            ay = int(yp / cube_size) * cube_size + 64
-            ya = cube_size
-        xa = cube_size / math.tan((dr * math.pi) / 180)
-        ax = xp + (yp - ay) / math.tan((dr * math.pi) / 180)
-        print('тангенс = ' + str(math.tan((dr * math.pi) / 180)))
-
-        #  проверка на наличие стенки на первой точке
-        print('проверка на наличие стенки на первой точке')
-        for wall in wall_list:
-            if wall.collision(ax, ay):
-                print('colission' + str(ax) + ' ' + str(ay))
-                temporarily_dis = distance(xp, yp, ax, ay)
-                go = False
-                break
-        #  если на первой точке нету стенки то идем дальше
-        print('на первой точке нету стенки, идем дальше')
-        while not go:
-            ax += xa
-            ay += ya
-            #  проверка на наличие стенки
-            print('проверка на наличие стенки')
-            for wall in wall_list:
-                if wall.collision(ax, ay):
-                    print('colission' + str(ax) + ' ' + str(ay))
-                    temporarily_dis = distance(xp, yp, ax, ay)
-                    go = False
-                    break
-
-            """пускаем луч по вертикалям"""
-        print('пускаем луч по вертикалям')
-        go2 = True
-
-        #  ищем самою первою точку пересечения по вертикали  (bx, by)
-        #  и ищем значение к которому потом будем прибавлять первое пересечение (ya, xa)
-        print('ищем ya, xa, bx, by')
-        if dir_r:
-            bx = int(xp / cube_size) * cube_size + 64
-            xa = cube_size
-        else:
-            bx = int(xp / cube_size) * cube_size - 1
-            xa = -cube_size
-        by = yp + (xp - bx) / math.tan((dr * math.pi) / 180)
-        ya = cube_size * math.tan((dr * math.pi) / 180)
-
-        #  проверка на наличие стенки на первой точке
-        print('проверка на наличие стенки на первой точке')
-        for wall in wall_list:
-            if wall.collision(bx, by):
-                print('colission' + str(bx) + ' ' + str(by))
-                a = distance(xp, yp, bx, by)
-                if a < temporarily_dis:
-                    print('замена')
-                    temporarily_dis = a
-                go2 = False
-                break
-        #  если на первой точке нету стенки то идем дальше
-
-        print('на первой точке нету стенки, идем дальше')
-        while not go2:
-            bx += xa
-            by += ya
-            #  проверка на наличие стенки
-            print('проверка на наличие стенки')
-            for wall in wall_list:
-                if wall.collision(bx, by):
-                    print('colission' + str(bx) + ' ' + str(by))
-                    a = distance(xp, yp, bx, by)
-                    if a < temporarily_dis:
-                        print('замена')
-                        temporarily_dis = a
-                    go2 = False
-                    break
-
-        print('next rey')
-        dis_list1.append(temporarily_dis)
-        dr += player.v_a / projection_plane[0]
-
-    return dis_list1
-
+def ray(x_p, y_p, degree):
+    x_h, y_h, dis_h = horizontal_rey(x_p, y_p, degree)
+    x_v, y_v, dis_v = vertical_rey(x_p, y_p, degree)
+    if dis_h < dis_v:
+        return x_h, y_h, dis_h
+    else:
+        return x_v, y_v, dis_v
 
 for item in map_list:
     # print(item, end='')
@@ -505,19 +415,12 @@ while run:
     #         print(rey.distance)
     Game.draw_minimap()
     if gorey:
-        for number in range(1):
-            x, y = horizontal_rey(player.x, player.y, player.degree + number)
-            x1, y1 = vertical_rey(player.x, player.y, player.degree + number)
-
+        for number in range(-45, 45):
+            x, y, dis = ray(player.x, player.y, player.degree + number)
             testy = int((map_scale * y) / (cube_size * number_cube))
             testx = int((window_x - map_scale) + (map_scale * x) / (cube_size * number_cube))
-            testy1 = int((map_scale * y1) / (cube_size * number_cube))
-            testx1 = int((window_x - map_scale) + (map_scale * x1) / (cube_size * number_cube))
             #print(testx1, testy1)
             if -1000 < testx or testx < 1000:
-                pass
-                # pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
-            if -1000 < testy1 or testy1 < 1000:
-                pygame.draw.circle(window, (255, 255, 255), [testx1, testy1], 3, 3)
+                pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
     #Game.draw_screen()
     pygame.display.update()
