@@ -83,7 +83,7 @@ class Game:
         # print(ay)
 
     @classmethod
-    def draw_screen(cls):
+    def draw_screen(cls, dis_list):
         for deviation in range(-player.v_a // 2, player.v_a // 2, rey_step):
             dr = convert_degree_in_vector(player.degree + deviation)
             result = go_rey(player.x, player.y, dr, wall_list)
@@ -196,6 +196,16 @@ def wall_collision_v(w_list, x, y):
     return False
 
 
+def revers_degree(degree):
+    if degree >= 360:
+        return degree - 360
+    if degree < 0:
+        return degree + 360
+    if degree == 0:
+        return 0
+    else:
+        return  degree
+
 def horizontal_rey(xp, yp, degree):
     temporarily_dis = 0
     """пускаем луч по горезонталям"""
@@ -277,11 +287,9 @@ def vertical_rey(xp, yp, degree):
     #  и ищем самою первою точку пересечения по горизонтали  (bx, by)
     #print('ищем ya, xa, bx, by')
     if 90 < degree < 270:  # лево
-        print('left')
         bx = int(xp / cube_size) * cube_size
         xa = - cube_size
     else:  # право
-        print('right')
         bx = int(xp / cube_size) * cube_size + cube_size
         xa = cube_size
     tangens_degree = math.tan((degree * math.pi) / 180)
@@ -294,13 +302,11 @@ def vertical_rey(xp, yp, degree):
     else:
         ya = 0
         by = yp
-    print(ya, xa, bx, by)
     #  проверка на наличие стенки на первой точке
     #print('проверка на наличие стенки на первой точке')
     if wall_collision_v(wall_list, bx, by):
         dis = distance(xp, yp, bx, by)
         return bx, by, dis
-    return 0, 0, 1000
     # testy = int((map_scale * by) / (cube_size * number_cube))
     # testx = int((window_x - map_scale) + (map_scale * bx) / (cube_size * number_cube))
     # if -1000 > testy or testy > 1000:
@@ -321,10 +327,9 @@ def vertical_rey(xp, yp, degree):
         # # print(testx, testy)
         # pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
 
-        print('bx, by = ' + str(bx) + ' ' + str(by))
         if bx > real_map_size or by > real_map_size or bx < 0 or by < 0:
             # print('луч вышел за граници карты')
-            break
+            return 0, 0, 1000
         #  проверка на наличие стенки
         #print('проверка на наличие стенки')
         if wall_collision_v(wall_list, bx, by):
@@ -340,6 +345,8 @@ def ray(x_p, y_p, degree):
         return x_h, y_h, dis_h
     else:
         return x_v, y_v, dis_v
+
+
 
 for item in map_list:
     # print(item, end='')
@@ -365,7 +372,7 @@ for item in map_list:  # рисование стени
     count_x += 1
 
 while run:
-    clock.tick(60)
+    # clock.tick(60)
     for e in pygame.event.get():
         if e.type == pygame.QUIT:
             run = False
@@ -373,13 +380,13 @@ while run:
             gorey = not gorey
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d]:
-        player.rotate(-2)
+        player.rotate(-1)
         # for rey in rey_list:
         #     rey.active = True
         #     rey.x = rey.st_x
         #     rey.y = rey.st_y
     if keys[pygame.K_a]:
-        player.rotate(2)
+        player.rotate(1)
         # for rey in rey_list:
         #     rey.active = True
         #     rey.x = rey.st_x
@@ -415,12 +422,20 @@ while run:
     #         print(rey.distance)
     Game.draw_minimap()
     if gorey:
-        for number in range(-45, 45):
-            x, y, dis = ray(player.x, player.y, player.degree + number)
+        col = 1
+        go = True
+        steep = player.v_a / projection_plane[0]
+        degree = player.degree - player.v_a / 2
+        while go:
+            print(degree)
+            degree += steep
+            x, y, dis = ray(player.x, player.y, revers_degree(int(degree)))
             testy = int((map_scale * y) / (cube_size * number_cube))
             testx = int((window_x - map_scale) + (map_scale * x) / (cube_size * number_cube))
             #print(testx1, testy1)
             if -1000 < testx or testx < 1000:
                 pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
+            if degree == player.degree + player.v_a / 2:
+                go = False
     #Game.draw_screen()
     pygame.display.update()
