@@ -18,16 +18,21 @@ line_size = 50
 wall_list = []
 rey_list = []
 rey_step = 2
+FOV = 90
 projection_plane = [320, 200]
+center_p_p = projection_plane[0] / 2, projection_plane[1] / 2
+distance_to_p_p = (projection_plane[0] / 2) / math.tan(FOV / 2)
+high_wall = projection_plane[1]
+ray_degree = FOV / projection_plane[0]
 clock = pygame.time.Clock()
 map_list = '''##########
 #00##0000#
 #000#0000#
 #000###00#
-#000000#0#
+#0#0000#0#
 #0##00000#
-#000#0000#
-#00000000#
+#000#0#00#
+#000#0#00#
 #00000000#
 ##########'''
 
@@ -84,12 +89,9 @@ class Game:
 
     @classmethod
     def draw_screen(cls, dis_list):
-        for deviation in range(-player.v_a // 2, player.v_a // 2, rey_step):
-            dr = convert_degree_in_vector(player.degree + deviation)
-            result = go_rey(player.x, player.y, dr, wall_list)
-            if result != 0:
-                pygame.draw.line(window, (0, 0, 0), [deviation, 100], [deviation, 100 - result])
-                pygame.draw.line(window, (0, 0, 0), [deviation, 100], [deviation, 100 + result])
+        for dis in enumerate(dis_list):
+            high_wall_on_screen = cube_size / dis[1] * distance_to_p_p
+            pygame.draw.line(window, (0, 0, 0), [projection_plane[0] - dis[0], projection_plane[1] / 2 - high_wall_on_screen], [projection_plane[0] - dis[0], projection_plane[1] / 2 + high_wall_on_screen])
 class Player:
     def __init__(self, x, y, degree, viewing_angle):
         self.x = x
@@ -353,7 +355,7 @@ for item in map_list:
     if item != '0' and item != '#':
         pass
 
-player = Player(400, 400, 0, 90)
+player = Player(400, 400, 0, FOV)
 # for number in range(int(-player.v_a / 2), 0, 5):
 #     rey_list.append(Rey(player.x, player.y, number))
 
@@ -372,7 +374,7 @@ for item in map_list:  # рисование стени
     count_x += 1
 
 while run:
-    # clock.tick(60)
+    clock.tick(60)
     for e in pygame.event.get():
         if e.type == pygame.QUIT:
             run = False
@@ -421,15 +423,17 @@ while run:
     #         pygame.draw.rect(window, (0, 0, 0), [100 + rey.deviation, 300, 5, 100 - rey.distance])
     #         print(rey.distance)
     Game.draw_minimap()
+    distance_list = []
     if gorey:
         col = 1
         go = True
-        steep = player.v_a / projection_plane[0]
         degree = player.degree - player.v_a / 2
         while go:
             print(degree)
-            degree += steep
+            degree += ray_degree
             x, y, dis = ray(player.x, player.y, revers_degree(int(degree)))
+            # dis = dis * math.cos((revers_degree(degree) * math.pi) / 180)
+            distance_list.append(dis)
             testy = int((map_scale * y) / (cube_size * number_cube))
             testx = int((window_x - map_scale) + (map_scale * x) / (cube_size * number_cube))
             #print(testx1, testy1)
@@ -437,5 +441,6 @@ while run:
                 pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
             if degree == player.degree + player.v_a / 2:
                 go = False
+    Game.draw_screen(distance_list)
     #Game.draw_screen()
     pygame.display.update()
