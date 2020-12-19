@@ -355,13 +355,14 @@ for item in map_list:
     if item != '0' and item != '#':
         pass
 
-player = Player(400, 400, 0, FOV)
+player = Player(400, 400, 100, FOV)
 # for number in range(int(-player.v_a / 2), 0, 5):
 #     rey_list.append(Rey(player.x, player.y, number))
 
 # for number in range(1, player.v_a + 1, 5):
 #     rey_list.append(Rey(player.x, player.y, number))
 gorey = True
+fix = True
 
 count_x = 0
 count_y = 0
@@ -378,8 +379,12 @@ while run:
     for e in pygame.event.get():
         if e.type == pygame.QUIT:
             run = False
+        if e.type == pygame.MOUSEMOTION:
+            player.rotate(- e.rel[0])
         if e.type == pygame.KEYDOWN and e.key == pygame.K_r:
             gorey = not gorey
+        if e.type == pygame.KEYDOWN and e.key == pygame.K_t:
+            fix = not fix
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d]:
         player.rotate(-1)
@@ -394,8 +399,8 @@ while run:
         #     rey.x = rey.st_x
         #     rey.y = rey.st_y
     if keys[pygame.K_w]:
-        player.x += player.direction[0]
-        player.y += player.direction[1]
+        player.x += player.direction[0] * 2
+        player.y += player.direction[1] * 2
         # for rey in rey_list:
         #     rey.st_x = player.x
         #     rey.st_y = player.y
@@ -403,8 +408,8 @@ while run:
         #     rey.x = rey.st_x
         #     rey.y = rey.st_y
     if keys[pygame.K_s]:
-        player.x -= player.direction[0]
-        player.y -= player.direction[1]
+        player.x -= player.direction[0] * 2
+        player.y -= player.direction[1] * 2
         # for rey in rey_list:
         #     rey.st_x = player.x
         #     rey.st_y = player.y
@@ -432,7 +437,8 @@ while run:
             print(degree)
             degree += ray_degree
             x, y, dis = ray(player.x, player.y, revers_degree(int(degree)))
-            # dis = dis * math.cos((revers_degree(degree) * math.pi) / 180)
+            if fix:
+                dis *= math.cos((degree - player.degree) * math.pi / 180)
             distance_list.append(dis)
             testy = int((map_scale * y) / (cube_size * number_cube))
             testx = int((window_x - map_scale) + (map_scale * x) / (cube_size * number_cube))
