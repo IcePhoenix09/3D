@@ -90,8 +90,9 @@ class Game:
     @classmethod
     def draw_screen(cls, dis_list):
         for dis in enumerate(dis_list):
-            high_wall_on_screen = cube_size / dis[1] * distance_to_p_p
-            pygame.draw.line(window, (0, 0, 0), [projection_plane[0] - dis[0], projection_plane[1] / 2 - high_wall_on_screen], [projection_plane[0] - dis[0], projection_plane[1] / 2 + high_wall_on_screen])
+            if dis[1] != 0:
+                high_wall_on_screen = cube_size / dis[1] * distance_to_p_p
+                pygame.draw.line(window, (0, 0, 0), [projection_plane[0] - dis[0], projection_plane[1] / 2 - high_wall_on_screen], [projection_plane[0] - dis[0], projection_plane[1] / 2 + high_wall_on_screen])
 class Player:
     def __init__(self, x, y, degree, viewing_angle):
         self.x = x
@@ -172,7 +173,7 @@ def convert_degree_in_vector(degree):
 
 def convert_degree_in_vector2(degree):
     x = math.cos((degree * math.pi) / 180)
-    y = math.tan((degree * math.pi) / 180) * x
+    y = math.sin((degree * math.pi) / 180)
     return [x, -y]
 
 
@@ -259,7 +260,7 @@ def horizontal_rey(xp, yp, degree):
         # print('ax, ay = ' + str(ax) + ' ' + str(ay))
         # print(degree)
         if ax > real_map_size or ay > real_map_size or ax < 0 or ay < 0:
-            # print('луч вышел за граници карты')
+            print('луч вышел за граници карты')
             break
         # testy = int((map_scale * ay) / (cube_size * number_cube))
         # testx = int((window_x - map_scale) + (map_scale * ax) / (cube_size * number_cube))
@@ -344,9 +345,11 @@ def ray(x_p, y_p, degree):
     x_h, y_h, dis_h = horizontal_rey(x_p, y_p, degree)
     x_v, y_v, dis_v = vertical_rey(x_p, y_p, degree)
     if dis_h < dis_v:
-        return x_h, y_h, dis_h
+        color = (255, 0, 0)
+        return x_h, y_h, dis_h, color
     else:
-        return x_v, y_v, dis_v
+        color = (255, 255, 0)
+        return x_v, y_v, dis_v, color
 
 
 
@@ -387,26 +390,16 @@ while run:
             fix = not fix
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d]:
-        player.rotate(-1)
-        # for rey in rey_list:
-        #     rey.active = True
-        #     rey.x = rey.st_x
-        #     rey.y = rey.st_y
+        x, y = convert_degree_in_vector2(player.degree - 90)
+        player.x += x * 2
+        player.y += y * 2
     if keys[pygame.K_a]:
-        player.rotate(1)
-        # for rey in rey_list:
-        #     rey.active = True
-        #     rey.x = rey.st_x
-        #     rey.y = rey.st_y
+        x, y = convert_degree_in_vector2(player.degree + 90)
+        player.x += x * 2
+        player.y += y * 2
     if keys[pygame.K_w]:
         player.x += player.direction[0] * 2
         player.y += player.direction[1] * 2
-        # for rey in rey_list:
-        #     rey.st_x = player.x
-        #     rey.st_y = player.y
-        #     rey.active = True
-        #     rey.x = rey.st_x
-        #     rey.y = rey.st_y
     if keys[pygame.K_s]:
         player.x -= player.direction[0] * 2
         player.y -= player.direction[1] * 2
@@ -434,9 +427,9 @@ while run:
         go = True
         degree = player.degree - player.v_a / 2
         while go:
-            print(degree)
+            col += 0.5
             degree += ray_degree
-            x, y, dis = ray(player.x, player.y, revers_degree(int(degree)))
+            x, y, dis, color = ray(player.x, player.y, revers_degree(int(degree)))
             if fix:
                 dis *= math.cos((degree - player.degree) * math.pi / 180)
             distance_list.append(dis)
@@ -444,7 +437,7 @@ while run:
             testx = int((window_x - map_scale) + (map_scale * x) / (cube_size * number_cube))
             #print(testx1, testy1)
             if -1000 < testx or testx < 1000:
-                pygame.draw.circle(window, (255, 255, 255), [testx, testy], 3, 3)
+                pygame.draw.circle(window, color, [testx, testy], 3, 3)
             if degree == player.degree + player.v_a / 2:
                 go = False
     Game.draw_screen(distance_list)
